@@ -15,7 +15,7 @@ class Prefix(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def _set(self, ctx, prefix: str):
         if len(prefix) > 20:
-            raise Error.InvalidPrefix
+            raise Error.InvalidPrefix(ctx)
 
         await ctx.bot.add_prefix(ctx.guild.id, prefix)
         await ctx.tick()

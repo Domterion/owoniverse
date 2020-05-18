@@ -125,21 +125,43 @@ class owoniverse(commands.Bot):
         self.used += 1
         await self.invoke(ctx)
 
+    async def add_to_cache(self, guild: int, logging: bool=False):
+        if guild in self.guild_config:
+            return
+
+        self.guild_config[guild] = {"prefix": None, "log": {"channel": None, "member_logs": logging, "mod_logs": logging, "message_logs": logging}}
+
     async def add_prefix(self, guild: int, prefix: str):
+        await self.add_to_cache(guild)
+
         self.guild_config[guild]['prefix'] = prefix
         await self.pool.execute("INSERT INTO settings(id, prefix) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET prefix = $2", guild, prefix)
 
     async def remove_prefix(self, guild: int):
+        await self.add_to_cache(guild)
+
         self.guild_config[guild]['prefix'] = None
         await self.pool.execute("UPDATE settings SET prefix = NULL WHERE id = $1", guild)
 
     async def add_log(self, guild: int, channel: int):
+        await self.add_to_cache(guild, True)
+
         self.guild_config[guild]['log']['channel'] = channel
         await self.pool.execute("INSERT INTO settings(id, log) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET log = $2", guild, channel)
 
     async def remove_log(self, guild: int):
+        await self.add_to_cache(guild)
+
         self.guild_config[guild]['log']['channel'] = None
         await self.pool.execute("UPDATE settings SET log = NULL WHERE id = $1", guild)
+
+    async def toggle_log(self, guild: int, log: str):
+        await self.add_to_cache(guild)
+
+        current = self.guild_config[guild]['log'][log]
+
+        self.guild_config[guild]['log'][log] = not current
+        await self.pool.execute(f"UPDATE settings SET {log} = $1 WHERE id = $2", not current, guild)
 
     async def get_log_channel(self, guild: discord.Guild):
         return guild.get_channel(self.guild_config[guild.id]['log']['channel'])

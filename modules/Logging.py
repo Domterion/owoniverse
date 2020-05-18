@@ -39,6 +39,21 @@ class Logging(commands.Cog):
         await ctx.bot.remove_log(ctx.guild.id)
         await ctx.tick()
 
+    @_log.command(name="toggle", description="Toggle which logs are on, mod_logs, member_logs and message_logs.")
+    @commands.has_permissions(administrator=True)
+    async def _toggle(self, ctx, log: str):
+
+        logs = ["mod_logs", "message_logs", "member_logs"]
+
+        if ctx.bot.guild_config[ctx.guild.id]['log'] is None:
+            raise Error.MissingSetting(ctx)
+
+        if log not in logs:
+            raise Error.InvalidSetting(ctx)
+
+        await ctx.bot.toggle_log(ctx.guild.id, log)
+        await ctx.tick()
+
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         channel = await self.bot.get_log_channel(message.guild)
@@ -47,10 +62,10 @@ class Logging(commands.Cog):
 
         user = "message author" if message.author.id == audit[0].user.id else f"{audit[0].user.name} ({audit[0].user.id})"
 
-        if channel is not None:
+        if channel is not None and self.bot.guild_config[message.guild.id]['log']['message_logs']:
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted by **{user}**
-Content: {message.content}
-Author: {message.author} ({message.author.id})
+**Content**: {message.content}
+**Author**: {message.author} ({message.author.id})
 """)
 
             e.set_footer(text="Deleted at")
@@ -61,7 +76,7 @@ Author: {message.author} ({message.author.id})
     async def on_bulk_message_delete(self, messages):
         channel = await self.bot.get_log_channel(messages[0].guild)
 
-        if channel is not None:
+        if channel is not None and self.bot.guild_config[messages.guild.id]['log']['message_logs']:
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"**{len(messages)}** were bulk deleted.")
 
             e.set_footer(text="Deleted at")

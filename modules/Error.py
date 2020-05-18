@@ -6,6 +6,10 @@ class InvalidPrefix(commands.CommandError):
     def __init__(self, ctx):
         super().__init__(f"Prefixes can only be upto **20** characters in length.")
 
+class InvalidSetting(commands.CommandError):
+    def __init__(self, ctx):
+        super().__init__(f"You are using an invalid setting for **{ctx.command}**.")
+
 class MissingSetting(commands.CommandError):
     def __init__(self, ctx):
         super().__init__(f"You are missing a setting for **{ctx.command}**.")
@@ -24,7 +28,7 @@ class Error(commands.Cog):
             commands.CommandInvokeError,
             commands.UserInputError,
         )
-        custom_errors = (InvalidPrefix, MissingSetting)
+        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting)
 
         if isinstance(error, errors):
             await ctx.send(error)
