@@ -15,6 +15,7 @@ Icon
 # Config
 
 config.py
+systemd.service
 
 # Thumbnails
 ._*
