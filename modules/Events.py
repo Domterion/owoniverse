@@ -55,9 +55,17 @@ class Events(commands.Cog):
 
                 user = "role owner" if before.id == audit[0].user.id else f"**{audit[0].user.name}** (**{audit[0].user.id}**)"
 
+                roles = before.roles + after.roles
+                roles_changed = []
+
+                for r in roles:
+                    if r not in before.roles:
+                        roles_changed.append(f"+{r.name}")
+                    if r not in after.roles:
+                        roles_changed.append(f"-{r.name}")
+
                 e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{before.name}** (**{before.id}**) roles were updated by {user}
-**Before**: {", ".join([Role.name for Role in before.roles])}
-**After**: {", ".join([Role.name for Role in after.roles])}
+**Roles**: {", ".join(roles_changed)}
 """)
 
                 await channel.send(embed=e)
