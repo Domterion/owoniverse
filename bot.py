@@ -77,7 +77,7 @@ class owoniverse(commands.Bot):
             pass
 
         for i in await self.pool.fetch("SELECT * FROM settings"):
-            self.guild_config[i['id']] = {"prefix": i['prefix'], "log": {"channel": i['log'], "member_logs": i['member_logs'], "mod_logs": i['mod_logs'], "message_logs": i['message_logs']}}
+            self.guild_config[i['id']] = {"prefix": i['prefix'], "log": {"channel": i['log'], "member_logs": i['member_logs'], "mod_logs": i['mod_logs'], "message_logs": i['message_logs'], "guild_logs": i['guild_logs']}}
 
 
         await self.change_presence(
@@ -129,7 +129,7 @@ class owoniverse(commands.Bot):
         if guild in self.guild_config:
             return
 
-        self.guild_config[guild] = {"prefix": None, "log": {"channel": None, "member_logs": logging, "mod_logs": logging, "message_logs": logging}}
+        self.guild_config[guild] = {"prefix": None, "log": {"channel": None, "member_logs": logging, "mod_logs": logging, "message_logs": logging, "guild_logs": logging}}
 
     async def add_prefix(self, guild: int, prefix: str):
         await self.add_to_cache(guild)
@@ -164,7 +164,16 @@ class owoniverse(commands.Bot):
         await self.pool.execute(f"UPDATE settings SET {log} = $1 WHERE id = $2", not current, guild)
 
     async def get_log_channel(self, guild: discord.Guild):
-        return guild.get_channel(self.guild_config[guild.id]['log']['channel'])
+        try:
+            return guild.get_channel(self.guild_config[guild.id]['log']['channel'])
+        except KeyError:
+            return
+
+    async def get_guild_config(self, guild: discord.Guild):
+        try:
+            return self.guild_config[guild.id]
+        except KeyError:
+            return None
 
 if __name__ == "__main__":
     owoniverse().run()

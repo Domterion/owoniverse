@@ -24,7 +24,7 @@ class Configuration(commands.Cog):
     @_prefix.command(name="default", aliases=["none", "remove", "delete", "disable"], description="Set guild prefix back to uwu.")
     @commands.has_permissions(administrator=True)
     async def _default(self, ctx):
-        if ctx.bot.guild_config[ctx.guild.id]['prefix'] is None:
+        if await ctx.bot.get_guild_config(ctx.guild)['prefix'] is None:
             raise Error.MissingSetting(ctx)
 
         await ctx.bot.remove_prefix(ctx.guild.id)
@@ -47,7 +47,7 @@ class Configuration(commands.Cog):
     @_log.command(name="default", aliases=["none", "remove", "delete", "disable"], description="Remove guild logging channel.")
     @commands.has_permissions(administrator=True)
     async def _default(self, ctx):
-        if ctx.bot.guild_config[ctx.guild.id]['log'] is None:
+        if await ctx.bot.get_guild_config(ctx.guild)['log'] is None:
             raise Error.MissingSetting(ctx)
 
         await ctx.bot.remove_log(ctx.guild.id)
@@ -56,13 +56,10 @@ class Configuration(commands.Cog):
     @_log.command(name="toggle", description="Toggle which logs are on, mod_logs, member_logs and message_logs.")
     @commands.has_permissions(administrator=True)
     async def _toggle(self, ctx, log: str):
-
-        logs = ["mod_logs", "message_logs", "member_logs"]
-
-        if ctx.bot.guild_config[ctx.guild.id]['log'] is None:
+        if await ctx.bot.get_guild_config(ctx.guild)['log'] is None:
             raise Error.MissingSetting(ctx)
 
-        if log not in logs:
+        if log not in ctx.config.logs:
             raise Error.InvalidSetting(ctx)
 
         await ctx.bot.toggle_log(ctx.guild.id, log)
@@ -70,7 +67,7 @@ class Configuration(commands.Cog):
 
     @commands.command(name="config", description="Check your guild config")
     async def _config(self, ctx):
-        config = ctx.bot.guild_config[ctx.guild.id]
+        config = await ctx.bot.get_guild_config(ctx.guild)
         if config is None:
             raise Error.NoConfig(ctx)
 
@@ -80,9 +77,10 @@ class Configuration(commands.Cog):
 **member_logs**: {ctx.bot.config.emotes['tick'] if config['log']['member_logs'] else ctx.bot.config.emotes['cross']}
 **message_logs**: {ctx.bot.config.emotes['tick'] if config['log']['message_logs'] else ctx.bot.config.emotes['cross']}
 **mod_logs**: {ctx.bot.config.emotes['tick'] if config['log']['mod_logs'] else ctx.bot.config.emotes['cross']}
+**guild_logs**: {ctx.bot.config.emotes['tick'] if config['log']['guild_logs'] else ctx.bot.config.emotes['cross']}
 """
         e = discord.Embed(color=ctx.bot.config.color, description=f"""
-Your guilds prefix is **{config['prefix']}**.
+Your guilds prefix is "**{config['prefix'] if config['prefix'] is not None else ctx.prefix}**".
 
 Logging:
 {log}
