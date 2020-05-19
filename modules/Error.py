@@ -14,6 +14,10 @@ class MissingSetting(commands.CommandError):
     def __init__(self, ctx):
         super().__init__(f"You are missing a setting for **{ctx.command}**.")
 
+class NoConfig(commands.CommandError):
+    def __init__(self, ctx):
+        super().__init__(f"Your guild has no config, get started by setting your prefix or log channel.")
+
 class Error(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -28,7 +32,7 @@ class Error(commands.Cog):
             commands.CommandInvokeError,
             commands.UserInputError,
         )
-        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting)
+        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig)
 
         if isinstance(error, errors):
             await ctx.send(error)
