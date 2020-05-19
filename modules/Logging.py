@@ -60,10 +60,10 @@ class Logging(commands.Cog):
 
         audit = await message.guild.audit_logs(limit=1, action=discord.AuditLogAction.message_delete).flatten()
 
-        user = "message author" if message.author.id == audit[0].user.id else f"{audit[0].user.name} ({audit[0].user.id})"
+        user = "message author" if message.author.id == audit[0].user.id else f"**{audit[0].user.name}** (**{audit[0].user.id}**)"
 
         if channel is not None and self.bot.guild_config[message.guild.id]['log']['message_logs']:
-            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted by **{user}**
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted by {user}
 **Content**: {message.content}
 **Author**: {message.author} ({message.author.id})
 """)
@@ -80,6 +80,49 @@ class Logging(commands.Cog):
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"**{len(messages)}** were bulk deleted.")
 
             e.set_footer(text="Deleted at")
+
+            await channel.send(embed=e)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before, after):
+        channel = await self.bot.get_log_channel(before.guild)
+
+        if channel is not None and self.bot.guild_config[before.guild.id]['log']['member_logs']:
+            if before.roles != after.roles:
+                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.member_role_update).flatten()
+
+                user = "role owner" if before.id == audit[0].user.id else f"**{audit[0].user.name}** (**{audit[0].user.id}**)"
+
+                e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{before.name}** (**{before.id}**) roles were updated by {user}
+**Before**: {", ".join([Role.name for Role in before.roles])}
+**After**: {", ".join([Role.name for Role in after.roles])}
+""")
+
+                await channel.send(embed=e)
+
+    # Custom errors
+
+    async def on_member_ban(self, guild, user, mod, reason: str, case: int):
+        channel = await self.bot.get_log_channel(guild)
+
+        if channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""[**{case}**] **{user.name}** (**{user.id}**) was banned by **{mod.name}** (**{mod.id}**)
+**Reason**: {reason}
+""")
+
+            e.set_footer(text="Banned at")
+
+            await channel.send(embed=e)
+
+    async def on_member_unban(self, guild, user, mod, reason: str, case: int):
+        channel = await self.bot.get_log_channel(guild)
+
+        if channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""[**{case}**] **{user.name}** (**{user.id}**) was unbanned by **{mod.name}** (**{mod.id}**)
+**Reason**: {reason}
+""")
+
+            e.set_footer(text="Unbanned at")
 
             await channel.send(embed=e)
 

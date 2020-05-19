@@ -7,7 +7,7 @@ color = 0x000000
 
 description = "A bot made by YOU."
 
-extensions = ["jishaku", "modules.Util", "modules.Error", "modules.Prefix", "modules.Logging"]
+extensions = ["jishaku", "modules.Util", "modules.Error", "modules.Prefix", "modules.Logging", "modules.Mod"]
 
 db = {
     "host": "127.0.0.1",
