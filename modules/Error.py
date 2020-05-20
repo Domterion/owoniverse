@@ -22,6 +22,14 @@ class InvalidReason(commands.CommandError):
     def __init__(self, ctx):
         super().__init__(f"Reasons can only be upto **512** characters in length.")
 
+class NoCase(commands.CommandError):
+    def __init__(self, case):
+        super().__init__(f"**{case}** is not your guilds case or doesn't exist.")
+
+class NotYourCase(commands.CommandError):
+    def __init__(self, case):
+        super().__init__(f"**{case}** is not your case or isn't your guilds case.")
+
 class Error(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -36,7 +44,7 @@ class Error(commands.Cog):
             commands.CommandInvokeError,
             commands.UserInputError,
         )
-        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig, InvalidReason)
+        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig, InvalidReason, NoCase, NotYourCase)
 
         if isinstance(error, errors):
             await ctx.send(error)

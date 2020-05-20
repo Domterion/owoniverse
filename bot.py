@@ -161,7 +161,7 @@ class owoniverse(commands.Bot):
         self.guild_config[guild]['log'][log] = not current
         await self.pool.execute(f"UPDATE settings SET {log} = $1 WHERE id = $2", not current, guild)
 
-    async def get_log_channel(self, guild: discord.Guild):
+    async def get_log_channel(self, guild ):
         try:
             return guild.get_channel(self.guild_config[guild.id]['log']['channel'])
         except KeyError:
@@ -180,6 +180,18 @@ class owoniverse(commands.Bot):
     async def add_case(self, guild: int, action: str, mod: int, user: int, reason: str):
         case = await self.pool.fetchval("INSERT INTO cases(guild, action, mod, \"user\", reason) VALUES ($1, $2, $3, $4, $5) RETURNING id", guild, action, mod, user, reason)
         return case
+
+    async def get_case(self, guild: int, case: int):
+        case = await self.pool.fetchrow("SELECT * FROM cases WHERE guild = $1 AND id = $2", guild, case)
+        return case
+
+    async def modify_case(self, guild: int, id: int, mod: int, owner: bool, reason: str):
+        if owner:
+            case = await self.pool.fetchval("UPDATE cases SET reason=$1 WHERE guild = $2 AND id = $3 RETURNING id", reason, guild, id)
+        if not owner:
+            case = await self.pool.fetchval("UPDATE cases SET reason=$1 WHERE guild = $2 AND id = $3 AND mod = $4 RETURNING id", reason, guild, id, mod)
+        return case
+
 
 if __name__ == "__main__":
     owoniverse().run()

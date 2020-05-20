@@ -99,5 +99,43 @@ class Mod(commands.Cog):
 
         await ctx.tick()
 
+    @commands.has_permissions(manage_messages=True)
+    @commands.group(name="case", invoke_without_command=True, description="Does nothing without a subcommand.")
+    async def _case(self, ctx):
+        await ctx.send("Please use a subcommand.")
+
+    @commands.has_permissions(manage_messages=True)
+    @_case.command(name="view", description="Check a case")
+    async def _view(self, ctx, id: int):
+        case = await self.bot.get_case(ctx.guild.id, id)
+
+        if case is None:
+            raise Error.NoCase(id)
+
+        user = ctx.bot.get_user(case['user'])
+        mod = ctx.bot.get_user(case['mod'])
+
+        e = discord.Embed(color=ctx.bot.config.color, timestamp=case['time'], description=f"""
+[**{case['action']}**][**{case['id']}**] {f"**{case['user']}**" if user is None else f"**{user.name}** (**{user.id}**)"} 
+**Mod**: {f"{case['mod']}" if mod is None else f"{mod.name} ({mod.id})"} 
+**Reason**: {case['reason']}
+""")
+        e.set_footer(text="Happened at ")
+
+        await ctx.send(embed=e)
+
+    @commands.has_permissions(manage_messages=True)
+    @_case.command(name="reason", description="Edit a case reason")
+    async def _reason(self, ctx, id: int, *, reason):
+        if len(reason) > 512:
+            raise Error.InvalidReason(ctx)
+
+        case = await self.bot.modify_case(ctx.guild.id, id, ctx.author.id, ctx.author.id == ctx.guild.owner_id, reason)
+
+        if case is None:
+            raise Error.NotYourCase(id)
+
+        await ctx.tick()
+
 def setup(bot):
     bot.add_cog(Mod(bot))
