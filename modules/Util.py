@@ -36,6 +36,7 @@ I'm using **{round(cpu_usage/cpu_count, 2)}**% CPU and **{round(memory_usage, 2)
 
 Links: 
 You can add me to your server with **[invite]({ctx.bot.invite})**
+I am open source under the MIT license, you can find my source **[here](https://github.com/Domterion/owoniverse)**
 """)
         e.add_field(name="Commands used since restart:", value=f"**{ctx.bot.used}**", inline=False)
         e.add_field(name="Latency", value=f"**{round(ctx.bot.latency*1000)}**ms")

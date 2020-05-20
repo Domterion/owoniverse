@@ -18,6 +18,10 @@ class NoConfig(commands.CommandError):
     def __init__(self, ctx):
         super().__init__(f"Your guild has no config, get started by setting your prefix or log channel.")
 
+class InvalidReason(commands.CommandError):
+    def __init__(self, ctx):
+        super().__init__(f"Reasons can only be upto **512** characters in length.")
+
 class Error(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -32,7 +36,7 @@ class Error(commands.Cog):
             commands.CommandInvokeError,
             commands.UserInputError,
         )
-        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig)
+        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig, InvalidReason)
 
         if isinstance(error, errors):
             await ctx.send(error)

@@ -173,5 +173,13 @@ class owoniverse(commands.Bot):
         except KeyError:
             return None
 
+    async def remove_from_bot(self, guild: discord.Guild):
+        del self.guild_config[guild.id]
+        await self.pool.execute("DELETE FROM settings WHERE id = $1", guild.id)
+
+    async def add_case(self, guild: int, action: str, mod: int, user: int, reason: str):
+        case = await self.pool.fetchval("INSERT INTO cases(guild, action, mod, \"user\", reason) VALUES ($1, $2, $3, $4, $5) RETURNING id", guild, action, mod, user, reason)
+        return case
+
 if __name__ == "__main__":
     owoniverse().run()

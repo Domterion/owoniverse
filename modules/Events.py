@@ -10,13 +10,29 @@ class Events(commands.Cog):
 
     #######################################################
     #
+    # Bot Logs
+    #
+    ########################################################
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        log_channel = await self.bot.get_guild_config(guild.id)
+
+        if log_channel is not None:
+            try:
+                await self.bot.remove_from_bot(guild)
+            except:
+                return
+
+    #######################################################
+    #
     # Message Logs
     #
     ########################################################
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        log_channel = await self.bot.get_log_channel(message.guild)
+        log_channel = await self.bot.get_log_channel(message.guild.id)
 
         if log_channel is not None and self.bot.guild_config[message.guild.id]['log']['message_logs']:
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted in {message.channel.mention} (**{message.channel.id}**)
@@ -30,8 +46,8 @@ class Events(commands.Cog):
     async def on_bulk_message_delete(self, messages):
         log_channel = await self.bot.get_log_channel(messages[0].guild)
 
-        if log_channel is not None and self.bot.guild_config[messages.guild.id]['log']['message_logs']:
-            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"**{len(messages)}** were bulk deleted.")
+        if log_channel is not None and self.bot.guild_config[messages[0].guild.id]['log']['message_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"**{len(messages)}** messages were bulk deleted.")
 
             await log_channel.send(embed=e)
 
@@ -158,8 +174,11 @@ class Events(commands.Cog):
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
 **{role.name}** (**{role.id}**) was just deleted
 """)
-
-            await log_channel.send(embed=e)
+            # On guild leave would error because bot role, will figure this out eventually
+            try:
+                await log_channel.send(embed=e)
+            except:
+                return
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before, after):
@@ -201,7 +220,7 @@ class Events(commands.Cog):
     #
     ########################################################
 
-    async def on_member_ban(self, guild, user, mod, reason: str, case: int):
+    async def on_member_ban(self, guild: discord.Guild, mod: discord.Member, user: discord.Member, reason: str, case: int):
         log_channel = await self.bot.get_log_channel(guild)
 
         if log_channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
@@ -210,7 +229,17 @@ class Events(commands.Cog):
 """)
             await log_channel.send(embed=e)
 
-    async def on_member_unban(self, guild, user, mod, reason: str, case: int):
+    async def on_member_ghostban(self, guild: discord.Guild, mod: discord.Member, user: int, reason: str, case: int):
+        log_channel = await self.bot.get_log_channel(guild)
+
+        if log_channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(),
+                              description=f"""[**{case}**] **{user}** was ghost banned by **{mod.name}** (**{mod.id}**)
+**Reason**: {reason}
+""")
+            await log_channel.send(embed=e)
+
+    async def on_member_unban(self, guild, mod, user, reason: str, case: int):
         log_channel = await self.bot.get_log_channel(guild)
 
         if log_channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
@@ -218,6 +247,26 @@ class Events(commands.Cog):
 **Reason**: {reason}
 """)
 
+            await log_channel.send(embed=e)
+
+    async def on_member_softban(self, guild, mod, user, reason: str, case: int):
+        log_channel = await self.bot.get_log_channel(guild)
+
+        if log_channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(),
+                              description=f"""[**{case}**] **{user.name}** (**{user.id}**) was softbanned by **{mod.name}** (**{mod.id}**)
+**Reason**: {reason}
+""")
+
+            await log_channel.send(embed=e)
+
+    async def on_member_kick(self, guild: discord.Guild, mod: discord.Member, user: discord.Member, reason: str, case: int):
+        log_channel = await self.bot.get_log_channel(guild)
+
+        if log_channel is not None and self.bot.guild_config[guild.id]['log']['mod_logs']:
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""[**{case}**] **{user.name}** (**{user.id}**) was kicked by **{mod.name}** (**{mod.id}**)
+**Reason**: {reason}
+""")
             await log_channel.send(embed=e)
 
 def setup(bot):
