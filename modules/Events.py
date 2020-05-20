@@ -1,15 +1,7 @@
-import asyncio
 from datetime import datetime
-import sys
-import time
 
-import asyncpg
 import discord
-import psutil
 from discord.ext import commands
-
-import config
-from modules import Error
 
 
 class Events(commands.Cog):
@@ -26,12 +18,8 @@ class Events(commands.Cog):
     async def on_message_delete(self, message):
         log_channel = await self.bot.get_log_channel(message.guild)
 
-        audit = await message.guild.audit_logs(limit=1, action=discord.AuditLogAction.message_delete).flatten()
-
-        user = "message author" if message.author.id == audit[0].user.id else f"**{audit[0].user.name}** (**{audit[0].user.id}**)"
-
         if log_channel is not None and self.bot.guild_config[message.guild.id]['log']['message_logs']:
-            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted by {user}
+            e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted in {message.channel.mention} (**{message.channel.id}**)
 **Content**: {message.content}
 **Author**: {message.author} ({message.author.id})
 """)
@@ -76,10 +64,6 @@ class Events(commands.Cog):
 
         if log_channel is not None and self.bot.guild_config[before.guild.id]['log']['member_logs']:
             if before.roles != after.roles:
-                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.member_role_update).flatten()
-
-                user = "role owner" if before.id == audit[0].user.id else f"**{audit[0].user.name}** (**{audit[0].user.id}**)"
-
                 roles = before.roles + after.roles
                 roles_changed = []
 
@@ -89,7 +73,7 @@ class Events(commands.Cog):
                     if r not in after.roles:
                         roles_changed.append(f"**-**{r.name}")
 
-                e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{before.name}** (**{before.id}**) roles were updated by {user}
+                e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{before.name}** (**{before.id}**) roles were updated
 **Roles**: {", ".join(roles_changed)}
 """)
 
@@ -106,7 +90,6 @@ class Events(commands.Cog):
         log_channel = await self.bot.get_log_channel(channel.guild)
 
         if log_channel is not None and self.bot.guild_config[channel.guild.id]['log']['guild_logs']:
-            audit = await channel.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create).flatten()
 
             data = "Unknown channel type."
 
@@ -122,7 +105,7 @@ class Events(commands.Cog):
 """
 
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{channel.name}** (**{channel.id}**) was just made by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{channel.name}** (**{channel.id}**) was just made
 
 {data}
 """)
@@ -134,10 +117,9 @@ class Events(commands.Cog):
         log_channel = await self.bot.get_log_channel(channel.guild)
 
         if log_channel is not None and self.bot.guild_config[channel.guild.id]['log']['guild_logs']:
-            audit = await channel.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_delete).flatten()
 
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{channel.name}** (**{channel.id}**) was just deleted by **{audit[0].user.name}** (**{audit[0].user.id}**)""")
+**{channel.name}** (**{channel.id}**) was just deleted""")
 
             await log_channel.send(embed=e)
 
@@ -147,10 +129,9 @@ class Events(commands.Cog):
 
         if log_channel is not None and self.bot.guild_config[before.guild.id]['log']['guild_logs']:
             if before.name != after.name:
-                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create).flatten()
 
                 e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-    **{before.name}** was renamed to **{after.name}** (**{after.id}**) by **{audit[0].user.name}** (**{audit[0].user.id}**)""")
+    **{before.name}** was renamed to **{after.name}** (**{after.id}**)""")
 
                 await log_channel.send(embed=e)
 
@@ -159,10 +140,9 @@ class Events(commands.Cog):
         log_channel = await self.bot.get_log_channel(role.guild)
 
         if log_channel is not None and self.bot.guild_config[role.guild.id]['log']['guild_logs']:
-            audit = await role.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_create).flatten()
 
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{role.name}** (**{role.id}**) was just made by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{role.name}** (**{role.id}**) was just made
 **Color**: {role.color}
 **Position**: {role.position}
 """)
@@ -174,10 +154,9 @@ class Events(commands.Cog):
         log_channel = await self.bot.get_log_channel(role.guild)
 
         if log_channel is not None and self.bot.guild_config[role.guild.id]['log']['guild_logs']:
-            audit = await role.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_delete).flatten()
 
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{role.name}** (**{role.id}**) was just deleted by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{role.name}** (**{role.id}**) was just deleted
 """)
 
             await log_channel.send(embed=e)
@@ -188,21 +167,17 @@ class Events(commands.Cog):
 
         if log_channel is not None and self.bot.guild_config[before.guild.id]['log']['guild_logs']:
             if before.name != after.name:
-                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_update).flatten()
-
                 e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{before.name}** was renamed to **{after.name}** (**{after.id}**) by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{before.name}** was renamed to **{after.name}** (**{after.id}**)
 """)
                 await log_channel.send(embed=e)
             if before.color != after.color:
-                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_update).flatten()
 
                 e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{before.name}** color was changed from **{before.color}** to **{after.color}** (**{after.id}**) by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{before.name}** color was changed from **{before.color}** to **{after.color}** (**{after.id}**)
 """)
                 await log_channel.send(embed=e)
             if before.permissions != after.permissions:
-                audit = await before.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_update).flatten()
 
                 permissions = list(before.permissions) + list(after.permissions)
                 permissions_changed = []
@@ -214,7 +189,7 @@ class Events(commands.Cog):
                         permissions_changed.append(f"**-**{p[0]}")
 
                 e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""
-**{before.name}** (**{before.id}**) permissions were changed by **{audit[0].user.name}** (**{audit[0].user.id}**)
+**{before.name}** (**{before.id}**) permissions were changed
 
 **Permissions**: {", ".join(permissions_changed)}
 """)

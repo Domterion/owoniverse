@@ -1,6 +1,6 @@
-import sys
-from discord.ext import commands
 import discord
+from discord.ext import commands
+
 
 class InvalidPrefix(commands.CommandError):
     def __init__(self, ctx):

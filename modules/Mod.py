@@ -1,6 +1,5 @@
 from discord.ext import commands
 
-from modules import Error
 
 class Mod(commands.Cog):
     def __init__(self, bot):

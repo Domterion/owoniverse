@@ -1,8 +1,7 @@
 import asyncio
-import collections
-from datetime import datetime
 import os
 import sys
+from datetime import datetime
 
 import aiohttp
 import asyncpg
@@ -10,9 +9,8 @@ import discord
 import psutil
 from discord.ext import commands
 
-import utils
-
 import config
+import utils
 
 try:
     import uvloop

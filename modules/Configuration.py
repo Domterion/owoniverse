@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from modules import Error
 
+
 class Configuration(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

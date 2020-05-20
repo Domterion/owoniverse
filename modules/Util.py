@@ -1,14 +1,9 @@
-import asyncio
-from datetime import datetime
 import sys
-import time
+from datetime import datetime
 
-import asyncpg
 import discord
 import psutil
 from discord.ext import commands
-
-import config
 
 
 class Util(commands.Cog):

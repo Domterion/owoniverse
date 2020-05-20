@@ -15,7 +15,7 @@ Icon
 # Config
 
 config.py
-systemd.service
+owoniverse.service
 
 # Thumbnails
 ._*
