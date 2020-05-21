@@ -16,7 +16,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
-        log_channel = await self.bot.get_guild_config(guild.id)
+        log_channel = self.bot.get_guild_config(guild.id)
 
         if log_channel is not None:
             try:

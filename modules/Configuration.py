@@ -17,7 +17,7 @@ class Configuration(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def _set(self, ctx, prefix: str):
         if len(prefix) > 20:
-            raise Error.InvalidPrefix(ctx)
+            raise Error.InvalidOrMissingSetting(ctx)
 
         await ctx.bot.add_prefix(ctx.guild.id, prefix)
         await ctx.tick()
@@ -25,8 +25,8 @@ class Configuration(commands.Cog):
     @_prefix.command(name="default", aliases=["none", "remove", "delete", "disable"], description="Set guild prefix back to uwu.")
     @commands.has_permissions(administrator=True)
     async def _default(self, ctx):
-        if await ctx.bot.get_guild_config(ctx.guild)['prefix'] is None:
-            raise Error.MissingSetting(ctx)
+        if ctx.bot.get_guild_config(ctx.guild.id)['prefix'] is None:
+            raise Error.InvalidOrMissingSetting(ctx)
 
         await ctx.bot.remove_prefix(ctx.guild.id)
         await ctx.tick()
@@ -36,9 +36,9 @@ class Configuration(commands.Cog):
     async def _log(self, ctx):
         await ctx.send("Please use a subcommand.")
 
-    @_log.command(name="set", description="Set your guilds logging channel. If no channel is specified will use channel called in.")
+    @_log.command(name="channel", description="Set your guilds logging channel. If no channel is specified will use channel called in.")
     @commands.has_permissions(administrator=True)
-    async def _set(self, ctx, channel: discord.TextChannel = None):
+    async def _channel(self, ctx, channel: discord.TextChannel = None):
         if channel is None:
             channel = ctx.channel
 
@@ -47,9 +47,9 @@ class Configuration(commands.Cog):
 
     @_log.command(name="default", aliases=["none", "remove", "delete", "disable"], description="Remove guild logging channel.")
     @commands.has_permissions(administrator=True)
-    async def _default(self, ctx):
-        if await ctx.bot.get_guild_config(ctx.guild)['log'] is None:
-            raise Error.MissingSetting(ctx)
+    async def __default(self, ctx):
+        if ctx.bot.get_guild_config(ctx.guild.id)['log'] is None:
+            raise Error.InvalidOrMissingSetting(ctx)
 
         await ctx.bot.remove_log(ctx.guild.id)
         await ctx.tick()
@@ -57,20 +57,17 @@ class Configuration(commands.Cog):
     @_log.command(name="toggle", description="Toggle which logs are on, mod_logs, member_logs and message_logs.")
     @commands.has_permissions(administrator=True)
     async def _toggle(self, ctx, log: str):
-        if await ctx.bot.get_guild_config(ctx.guild)['log'] is None:
-            raise Error.MissingSetting(ctx)
-
-        if log not in ctx.config.logs:
-            raise Error.InvalidSetting(ctx)
+        if ctx.bot.get_guild_config(ctx.guild.id)['log'] is None or log not in ctx.config.logs:
+            raise Error.InvalidOrMissingSetting(ctx)
 
         await ctx.bot.toggle_log(ctx.guild.id, log)
         await ctx.tick()
 
     @commands.command(name="config", description="Check your guild config")
     async def _config(self, ctx):
-        config = await ctx.bot.get_guild_config(ctx.guild)
+        config = ctx.bot.get_guild_config(ctx.guild.id)
         if config is None:
-            raise Error.NoConfig(ctx)
+            raise Error.NoConfig()
 
         log = f"You have no logging setup, do **{ctx.prefix}log set** to set your logging channel."
         if config['log']['channel'] is not None:

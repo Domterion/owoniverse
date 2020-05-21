@@ -1,34 +1,21 @@
 import discord
 from discord.ext import commands
 
-
-class InvalidPrefix(commands.CommandError):
+class InvalidOrMissingSetting(commands.CommandError):
     def __init__(self, ctx):
-        super().__init__(f"Prefixes can only be upto **20** characters in length.")
-
-class InvalidSetting(commands.CommandError):
-    def __init__(self, ctx):
-        super().__init__(f"You are using an invalid setting for **{ctx.command}**.")
-
-class MissingSetting(commands.CommandError):
-    def __init__(self, ctx):
-        super().__init__(f"You are missing a setting for **{ctx.command}**.")
+        super().__init__(f"You are using an invalid or missing setting for **{ctx.command}**. Reasons can only be upto **512** characters and prefixes upto **20**.")
 
 class NoConfig(commands.CommandError):
-    def __init__(self, ctx):
+    def __init__(self):
         super().__init__(f"Your guild has no config, get started by setting your prefix or log channel.")
 
-class InvalidReason(commands.CommandError):
-    def __init__(self, ctx):
-        super().__init__(f"Reasons can only be upto **512** characters in length.")
-
 class NoCase(commands.CommandError):
-    def __init__(self, case):
-        super().__init__(f"**{case}** is not your guilds case or doesn't exist.")
+    def __init__(self):
+        super().__init__("That case doesn't exist or doesn't belong to you or the guild.")
 
-class NotYourCase(commands.CommandError):
-    def __init__(self, case):
-        super().__init__(f"**{case}** is not your case or isn't your guilds case.")
+class InvalidLimit(commands.CommandError):
+    def __init__(self, limit):
+        super().__init__(f"**{limit}** invalid limit, limit can't be more than 15.")
 
 class Error(commands.Cog):
     def __init__(self, bot):
@@ -44,7 +31,7 @@ class Error(commands.Cog):
             commands.CommandInvokeError,
             commands.UserInputError,
         )
-        custom_errors = (InvalidPrefix, MissingSetting, InvalidSetting, NoConfig, InvalidReason, NoCase, NotYourCase)
+        custom_errors = (InvalidOrMissingSetting, NoConfig, NoCase, InvalidLimit)
 
         if isinstance(error, errors):
             await ctx.send(error)

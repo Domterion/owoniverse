@@ -167,9 +167,9 @@ class owoniverse(commands.Bot):
         except KeyError:
             return
 
-    async def get_guild_config(self, guild: discord.Guild):
+    def get_guild_config(self, guild: int):
         try:
-            return self.guild_config[guild.id]
+            return self.guild_config[guild]
         except KeyError:
             return None
 
@@ -183,6 +183,13 @@ class owoniverse(commands.Bot):
 
     async def get_case(self, guild: int, case: int):
         case = await self.pool.fetchrow("SELECT * FROM cases WHERE guild = $1 AND id = $2", guild, case)
+        return case
+
+    async def get_all_cases(self, guild: int, limit: int, mod: int = None):
+        if mod is None:
+            case = await self.pool.fetch("SELECT * FROM cases WHERE guild = $1 LIMIT $2", guild, limit)
+        if mod is not None:
+            case = await self.pool.fetch("SELECT * FROM cases WHERE guild = $1 AND mod = $2 LIMIT $3", guild, mod, limit)
         return case
 
     async def modify_case(self, guild: int, id: int, mod: int, owner: bool, reason: str):
