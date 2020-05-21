@@ -161,7 +161,7 @@ class owoniverse(commands.Bot):
         self.guild_config[guild]['log'][log] = not current
         await self.pool.execute(f"UPDATE settings SET {log} = $1 WHERE id = $2", not current, guild)
 
-    async def get_log_channel(self, guild ):
+    async def get_log_channel(self, guild):
         try:
             return guild.get_channel(self.guild_config[guild.id]['log']['channel'])
         except KeyError:

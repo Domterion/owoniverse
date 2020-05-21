@@ -32,7 +32,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
-        log_channel = await self.bot.get_log_channel(message.guild.id)
+        log_channel = await self.bot.get_log_channel(message.guild)
 
         if log_channel is not None and self.bot.guild_config[message.guild.id]['log']['message_logs']:
             e = discord.Embed(color=self.bot.config.color, timestamp=datetime.utcnow(), description=f"""**{message.id}** was deleted in {message.channel.mention} (**{message.channel.id}**)
