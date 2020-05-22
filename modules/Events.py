@@ -269,27 +269,6 @@ class Events(commands.Cog):
 """,
                 )
                 await log_channel.send(embed=e)
-            if before.permissions != after.permissions:
-
-                permissions = list(before.permissions) + list(after.permissions)
-                permissions_changed = []
-
-                for p in permissions:
-                    if p not in before.permissions:
-                        permissions_changed.append(f"**+**{p[0]}")
-                    if p not in after.permissions:
-                        permissions_changed.append(f"**-**{p[0]}")
-
-                e = discord.Embed(
-                    color=self.bot.config.color,
-                    timestamp=datetime.utcnow(),
-                    description=f"""
-**{before.name}** (**{before.id}**) permissions were changed
-
-**Permissions**: {", ".join(permissions_changed)}
-""",
-                )
-                await log_channel.send(embed=e)
 
     #######################################################
     #
