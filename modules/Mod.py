@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 
 from modules import Error
-from modules.Events import Events
 
 
 class MemberID(commands.Converter):
@@ -42,20 +41,31 @@ class BannedMember(commands.Converter):
             raise commands.BadArgument("That user wasn't previously banned.")
         return entity
 
+
 class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
     @commands.has_permissions(ban_members=True)
-    @commands.command(name="ghostban", aliases=["gb"], description="Ghost ban someone, or ban them even if they aren't in the guild.")
+    @commands.command(
+        name="ghostban",
+        aliases=["gb"],
+        description="Ghost ban someone, or ban them even if they aren't in the guild.",
+    )
     async def _ghostban(self, ctx, user: MemberID, *, reason):
         if len(reason) > 512:
             raise Error.InvalidOrMissingSetting()
 
-        case = await self.bot.add_case(ctx.guild.id, "ghostban", ctx.author.id, user, reason)
-        await self.bot.get_cog("Events").on_member_ghostban(ctx.guild, ctx.author, user, reason, case)
+        case = await self.bot.add_case(
+            ctx.guild.id, "ghostban", ctx.author.id, user, reason
+        )
+        await self.bot.get_cog("Events").on_member_ghostban(
+            ctx.guild, ctx.author, user, reason, case
+        )
 
-        await ctx.guild.ban(discord.Object(id=user), reason=f"[Ghostban][{case}] {user} for {reason}")
+        await ctx.guild.ban(
+            discord.Object(id=user), reason=f"[Ghostban][{case}] {user} for {reason}"
+        )
 
         await ctx.tick()
 
@@ -65,21 +75,31 @@ class Mod(commands.Cog):
         if len(reason) > 512:
             raise Error.InvalidOrMissingSetting()
 
-        case = await self.bot.add_case(ctx.guild.id, "ban", ctx.author.id, user.id, reason)
-        await self.bot.get_cog("Events").on_member_ban(ctx.guild, ctx.author, user, reason, case)
+        case = await self.bot.add_case(
+            ctx.guild.id, "ban", ctx.author.id, user.id, reason
+        )
+        await self.bot.get_cog("Events").on_member_ban(
+            ctx.guild, ctx.author, user, reason, case
+        )
 
         await ctx.guild.ban(user, reason=f"[Ban][{case}] {user} for {reason}")
 
         await ctx.tick()
 
     @commands.has_permissions(ban_members=True)
-    @commands.command(name="softban", description="Ban then unban a member to delete their messages")
+    @commands.command(
+        name="softban", description="Ban then unban a member to delete their messages"
+    )
     async def _softban(self, ctx, user: discord.Member, *, reason):
         if len(reason) > 512:
             raise Error.InvalidOrMissingSetting()
 
-        case = await self.bot.add_case(ctx.guild.id, "softban", ctx.author.id, user.id, reason)
-        await self.bot.get_cog("Events").on_member_softban(ctx.guild, ctx.author, user, reason, case)
+        case = await self.bot.add_case(
+            ctx.guild.id, "softban", ctx.author.id, user.id, reason
+        )
+        await self.bot.get_cog("Events").on_member_softban(
+            ctx.guild, ctx.author, user, reason, case
+        )
 
         await ctx.guild.ban(user, reason=f"[Softban][{case}] {user} for {reason}")
         await ctx.guild.unban(user, reason=f"[Softban unban][{case}]")
@@ -92,28 +112,42 @@ class Mod(commands.Cog):
         if len(reason) > 512:
             raise Error.InvalidOrMissingSetting()
 
-        case = await self.bot.add_case(ctx.guild.id, "kick", ctx.author.id, user.id, reason)
-        await self.bot.get_cog("Events").on_member_kick(ctx.guild, ctx.author, user, reason, case)
+        case = await self.bot.add_case(
+            ctx.guild.id, "kick", ctx.author.id, user.id, reason
+        )
+        await self.bot.get_cog("Events").on_member_kick(
+            ctx.guild, ctx.author, user, reason, case
+        )
 
         await ctx.guild.kick(user, reason=f"[Kick][{case}] {user} for {reason}")
 
         await ctx.tick()
 
     @commands.has_permissions(manage_messages=True)
-    @commands.group(name="case", invoke_without_command=True, description="Get the 15 most recent cases")
+    @commands.group(
+        name="case",
+        invoke_without_command=True,
+        description="Get the 15 most recent cases",
+    )
     async def _case(self, ctx):
         cases = await self.bot.get_all_cases(ctx.guild.id, 15)
 
         if not cases:
             raise Error.NoCase()
 
-        all = [f"[**{case['action']}**][**{case['id']}**] - {ctx.guild.get_member(case['user']) if ctx.guild.get_member(case['user']) is not None else case['user']}\n" for case in cases]
+        all = [
+            f"[**{case['action']}**][**{case['id']}**] - {ctx.guild.get_member(case['user']) if ctx.guild.get_member(case['user']) is not None else case['user']}\n"
+            for case in cases
+        ]
 
-        e = discord.Embed(color=ctx.bot.config.color, description=f"""
+        e = discord.Embed(
+            color=ctx.bot.config.color,
+            description=f"""
 **Guild cases**
 
 {"".join(all)}
-""")
+""",
+        )
 
         await ctx.send(embed=e)
 
@@ -125,14 +159,18 @@ class Mod(commands.Cog):
         if case is None:
             raise Error.NoCase()
 
-        user = ctx.bot.get_user(case['user'])
-        mod = ctx.bot.get_user(case['mod'])
+        user = ctx.bot.get_user(case["user"])
+        mod = ctx.bot.get_user(case["mod"])
 
-        e = discord.Embed(color=ctx.bot.config.color, timestamp=case['time'], description=f"""
+        e = discord.Embed(
+            color=ctx.bot.config.color,
+            timestamp=case["time"],
+            description=f"""
 [**{case['action']}**][**{case['id']}**] {f"**{case['user']}**" if user is None else f"**{user.name}** (**{user.id}**)"} 
 **Mod**: {f"{case['mod']}" if mod is None else f"{mod.name} ({mod.id})"} 
 **Reason**: {case['reason']}
-""")
+""",
+        )
         e.set_footer(text="Happened at ")
 
         await ctx.send(embed=e)
@@ -143,7 +181,9 @@ class Mod(commands.Cog):
         if len(reason) > 512:
             raise Error.InvalidOrMissingSetting()
 
-        case = await self.bot.modify_case(ctx.guild.id, id, ctx.author.id, ctx.author.id == ctx.guild.owner_id, reason)
+        case = await self.bot.modify_case(
+            ctx.guild.id, id, ctx.author.id, ctx.author.id == ctx.guild.owner_id, reason
+        )
 
         if case is None:
             raise Error.NoCase()
@@ -162,16 +202,22 @@ class Mod(commands.Cog):
         if cases is None:
             raise Error.NoCase()
 
+        all = [
+            f"[**{case['action']}**][**{case['id']}**] - **{ctx.guild.get_member(case['user']) if ctx.guild.get_member(case['user']) is not None else case['user']}**\n"
+            for case in cases
+        ]
 
-        all = [f"[**{case['action']}**][**{case['id']}**] - **{ctx.guild.get_member(case['user']) if ctx.guild.get_member(case['user']) is not None else case['user']}**\n"for case in cases]
-
-        e = discord.Embed(color=ctx.bot.config.color, description=f"""
+        e = discord.Embed(
+            color=ctx.bot.config.color,
+            description=f"""
 Cases for **{mod}**
 
 {"".join(all)}
-""")
+""",
+        )
 
         await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Mod(bot))

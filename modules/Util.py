@@ -10,7 +10,9 @@ class Util(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="info", aliases=["about"], description="Get info about the bot.")
+    @commands.command(
+        name="info", aliases=["about"], description="Get info about the bot."
+    )
     async def _info(self, ctx):
 
         ver = discord.version_info
@@ -25,9 +27,14 @@ class Util(commands.Cog):
         minutes, seconds = divmod(remainder, 60)
         days, hours = divmod(hours, 24)
 
-        e = discord.Embed(color=ctx.bot.config.color, description=f"Hello, I am **owoniverse**! I am made by **mellowmarshe#0001**.")
+        e = discord.Embed(
+            color=ctx.bot.config.color,
+            description=f"Hello, I am **owoniverse**! I am made by **mellowmarshe#0001**.",
+        )
 
-        e.add_field(name="Stats", value=f"""
+        e.add_field(
+            name="Stats",
+            value=f"""
 I'm in **{len(ctx.bot.guilds)}** guilds with **{len(ctx.bot.users)}** users.
 Made with **[dpy](https://github.com/Rapptz/discord.py)** version **{ver.major}**.**{ver.minor}**.**{ver.micro}** using Python **{p_ver.major}**.**{p_ver.minor}**.**{p_ver.micro}**
 
@@ -37,16 +44,29 @@ I'm using **{round(cpu_usage/cpu_count, 2)}**% CPU and **{round(memory_usage, 2)
 Links: 
 You can add me to your server with **[invite]({ctx.bot.invite})**
 I am open source under the MIT license, you can find my source **[here](https://github.com/Domterion/owoniverse)**
-""")
-        e.add_field(name="Commands used since restart:", value=f"**{ctx.bot.used}**", inline=False)
+""",
+        )
+        e.add_field(
+            name="Commands used since restart:",
+            value=f"**{ctx.bot.used}**",
+            inline=False,
+        )
         e.add_field(name="Latency", value=f"**{round(ctx.bot.latency*1000)}**ms")
-        e.add_field(name="Time alive", value=f"I've been alive for **{days}**d **{hours}**h **{minutes}**m.")
+        e.add_field(
+            name="Time alive",
+            value=f"I've been alive for **{days}**d **{hours}**h **{minutes}**m.",
+        )
 
         await ctx.send(embed=e)
 
     @commands.command(name="ping", description="Get the bots ping.")
     async def _ping(self, ctx):
         await ctx.send(f"Ping to websocket is **{round(ctx.bot.latency*1000)}**ms.")
+
+    @commands.command(name="invite", description="Get a bot invite")
+    async def _invite(self, ctx):
+        await ctx.send(f"You can invite me with <{ctx.bot.invite}>")
+
 
 def setup(bot):
     bot.add_cog(Util(bot))
